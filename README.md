@@ -14,8 +14,8 @@ It is used to demonstrate a custom GPT Action calling an API for OpenAI GPT Acti
 - Security: protected endpoints with HTTP Bearer token. See [Auth Design](#authentication-design)
 - Easy deployment: hosted verification path on [PythonAnywhere](./tests/README.md#4-api-client-test-with-pythonanywhere).
 - Testing layers: [see here](./tests/README.md)
-- Pre-commit hooks: Ruff (lint and format), `detect-secrets` (secret scanning), YAML validation, debug statement checks, end-of-file and trailing-whitespace fixers, large-file check. See `.pre-commit-config.yaml`.
-- Keys are loaded from environment variables or a local `.env` file (git-ignored). See [Local Setup](#local-setup-windows--vs-code)
+- Pre-commit hooks for linting and secret scanning. See [AGENTS.md](./AGENTS.md#useful-commands).
+- Keys are loaded from environment variables or a local `.env` file (git-ignored). See [Runtime configuration](./AGENTS.md#runtime-configuration)
 
 ## Architecture Overview
 
@@ -82,7 +82,7 @@ The `EXCHANGE_RATE_API_KEY` check runs before the Bearer token check, so a missi
 
 This makes the API easier to integrate with GPT Actions, OCS custom actions and tooling such as Postman.
 
-> **Note:** the `servers` URL in `openapi.yaml` is hardcoded to the author's PythonAnywhere deployment (`https://lisajwa.pythonanywhere.com`). If you deploy your own copy, change it to your own host before using the file as a GPT Action schema.
+> **Note:** the `servers` URL is hardcoded to the author's deployment. See [AGENTS.md](./AGENTS.md#gotchas).
 
 ## Prerequisites
 
@@ -110,6 +110,8 @@ $env:EXCHANGE_RATE_API_KEY = "your_exchange_rate_api_key" # pragma: allowlist se
 $env:SERVICE_AUTH_KEY = "your_service_auth_key" # pragma: allowlist secret
 ```
 
+Alternatively, put both keys in a git-ignored `.env` file in the project root. See [Runtime configuration](./AGENTS.md#runtime-configuration).
+
 Then, with the virtual environment active and from the repository root:
 
 ```console
@@ -120,22 +122,9 @@ flask --app plugin run
 python -m pytest -q
 ```
 
-See the [testing notes](./tests/README.md) for the other ways to test.
-
-### Using a `.env` file instead
-
-`plugin.py` loads a `.env` file from the project root at startup (via `python-dotenv`). Create one with:
-
-```text
-EXCHANGE_RATE_API_KEY=your_exchange_rate_api_key
-SERVICE_AUTH_KEY=your_service_auth_key
-```
-
-`.env` is listed in `.gitignore`, so it is not committed. Variables already set in the environment (such as the `$env:` lines above) take precedence over values in `.env`.
-
 ## Testing Strategy
 
-See [testing notes here](./tests/README.md)
+See [README for testing](./tests/README.md) including all the testing options.
 
 ## Ideas for improvements to POC
 

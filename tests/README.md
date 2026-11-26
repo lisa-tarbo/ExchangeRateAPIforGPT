@@ -10,27 +10,9 @@ Multiple ways to test:
 
 ## 1) Automated unit tests with pytest
 
-Run the automated test suite from the repository root:
+Run `python -m pytest -q` from the repository root. Command, gotchas and coverage are in [AGENTS.md](../AGENTS.md#testing).
 
-```console
-python -m pytest -q
-```
-
-Use `python -m pytest`, not the bare `pytest` command. `python -m` adds the current directory to Python's import path, which is what lets the tests import `plugin.py`. Bare `pytest` fails with a collection error.
-
-What is covered:
-
-- Health check endpoint (`GET /`)
-- Authenticated GBP and USD endpoint success paths (`GET /GBPRate`, `GET /USDRate`)
-- Auth failure behavior for protected endpoints (missing header and invalid Bearer token return 401)
-- Missing `EXCHANGE_RATE_API_KEY` behavior (500)
-- Missing `SERVICE_AUTH_KEY` behavior (500)
-- Upstream provider timeout (504)
-- Upstream provider request failure (502)
-- Upstream payload missing `conversion_rates` (502)
-- Upstream response that is not valid JSON (502)
-
-The pytest suite uses Flask's test client and mocks upstream provider calls, so tests run quickly and do not require live API calls.
+The suite uses Flask's test client and mocks upstream provider calls, so it runs quickly with no live API calls.
 
 ## 2) Provider integration test Jupyter notebook
 
@@ -44,21 +26,11 @@ setx EXCHANGE_RATE_API_KEY "your_exchange_rate_api_key"
 
 If you use `setx`, restart VS Code before running notebook cells.
 
-NOTE: the notebooks read the key from the OS environment only (`os.getenv`). They do not load the `.env` file, so a key that exists only in `.env` will not be found.
+NOTE: see [AGENTS.md gotchas](../AGENTS.md#gotchas) on how notebooks read keys.
 
 ## 3) Flask local web app API test with Postman
 
-With the virtual environment active, from the repository root:
-
-```console
-$env:EXCHANGE_RATE_API_KEY = "your_exchange_rate_api_key" # pragma: allowlist secret
-$env:SERVICE_AUTH_KEY = "your_service_auth_key" # pragma: allowlist secret
-
-# Run the plugin in Flask locally (--debug enables the reloader and debugger)
-flask --app plugin run --debug
-```
-
-Instead of the `$env:` lines, you can put both keys in a `.env` file in the project root (see the main [README](../README.md#using-a-env-file-instead)).
+Run the API locally with `flask --app plugin run --debug` and the keys set. See [AGENTS.md](../AGENTS.md#useful-commands).
 
 Health check URL against locally running Flask web-based API:
 ```text
@@ -82,7 +54,7 @@ Include `Authorization: Bearer <SERVICE_AUTH_KEY>` for protected endpoints.
     - `plugin.py`
     - `.env` (holds `EXCHANGE_RATE_API_KEY` and `SERVICE_AUTH_KEY`)
 
-    `openapi.yaml` does not need to be uploaded: the Flask app never serves it. You paste it into the GPT builder (see [GPT Action Setup](#5-gpt-action-setup)).
+    `openapi.yaml` is not uploaded. See [AGENTS.md](../AGENTS.md#runtime-configuration).
 
 4. In a PythonAnywhere Bash console, install the required packages:
 
@@ -103,14 +75,7 @@ Include `Authorization: Bearer <SERVICE_AUTH_KEY>` for these protected endpoints
 ### 4.2) Test with Jupyter Notebook
 [`tests/test-exchange-rate-plugin.ipynb`](./test-exchange-rate-plugin.ipynb)
 
-- The notebook has `API_BASE_URL` hardcoded to `https://lisajwa.pythonanywhere.com`. Change it to your own PythonAnywhere domain.
-- `SERVICE_AUTH_KEY` must be set as an OS environment variable (the notebook does not read `.env`):
-
-```console
-setx SERVICE_AUTH_KEY "your_service_auth_key"
-```
-
-Restart VS Code after using `setx`.
+- Set `API_BASE_URL` and `SERVICE_AUTH_KEY` as described in [AGENTS.md gotchas](../AGENTS.md#gotchas).
 
 --------------------------------------------------------------------------------------------
 
@@ -118,7 +83,7 @@ Restart VS Code after using `setx`.
 
 Reference: https://help.openai.com/en/articles/8770868-gpt-builder
 
-Use `openapi.yaml` as the action schema and configure Bearer authentication with `SERVICE_AUTH_KEY`. The `servers` URL in the schema is hardcoded to `https://lisajwa.pythonanywhere.com`; change it if you deployed your own copy.
+Use `openapi.yaml` as the action schema and configure Bearer authentication with `SERVICE_AUTH_KEY`. Change the hardcoded `servers` URL if you deployed your own copy (see [AGENTS.md](../AGENTS.md#gotchas)).
 
 ### POC Prompt/Instructions for GPT Action
 You are a currency insights assistant focused on GBP/ZAR and USD/ZAR.
